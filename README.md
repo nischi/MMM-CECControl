@@ -18,7 +18,19 @@ You can read the comport if you run the following command. `cec-client -l`.
 
 Config | Description
 --- | ---
-`comport` | comport of your Raspberry Pi <br />Default: `RPI`
+`comport` | Comport of your Raspberry Pi <br />Default: `RPI`
+
+### Full configuration of the module
+
+```javascript
+{
+    module: 'MMM-CECControl',
+    config: {
+        // Comport of your Raspberry Pi
+        comport: 'RPI'
+    }
+}
+```
 
 ## For Developers
 
