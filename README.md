@@ -11,6 +11,20 @@ CEC-Client to send the command to the TV.
 
 `sudo apt-get install cec-utils`
 
-## Config
+## Setup the Module
+In this module you only need to set the comport for the CEC-Client. Usualy it is RPI which is also the defaut value.
+
+You can read the comport if you run the following command. `cec-client -l`.
+
+Config | Description
+--- | ---
+`comport` | comport of your Raspberry Pi <br />Default: `RPI`
 
 ## For Developers
+
+To turn the TV on or of from another Module you need to send a notification.
+
+```javascript
+this.sendNotification('CECControl', 'on');
+this.sendNotification('CECControl', 'off');
+```
