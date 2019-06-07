@@ -21,6 +21,7 @@ module.exports = NodeHelper.create({
 			this.config = payload;
 		}
 		if (notification === 'CECControl') {
+      console.log('CECControl received: ', payload);
       switch (payload) {
         case 'on':
           this.turnOn();
