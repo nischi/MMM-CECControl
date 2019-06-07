@@ -7,11 +7,16 @@
 
 Module.register("MMM-CECControl",{
 	defaults: {
-		comport: 'RPI'
+    comport: 'RPI',
+    offOnStartup: true
 	},
 
 	start: function() {
-		this.sendSocketNotification('CONFIG', this.config);
+    this.sendSocketNotification('CONFIG', this.config);
+
+    if (this.config.offOnStartup) {
+      this.sendSocketNotification('CECControl', 'off');
+    }
   },
 
   socketNotificationReceived: function(notification, payload) {

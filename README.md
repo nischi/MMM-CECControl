@@ -19,6 +19,7 @@ You can read the comport if you run the following command. `cec-client -l`.
 Config | Description
 --- | ---
 `comport` | Comport of your Raspberry Pi <br />**Default Value:** `RPI`
+`offOnStartup` | Turn the TV off if the Mirror start <br />**Default Value:** `true`
 
 ### Full configuration of the module
 
@@ -27,7 +28,9 @@ Config | Description
     module: 'MMM-CECControl',
     config: {
         // Comport of your Raspberry Pi
-        comport: 'RPI'
+        comport: 'RPI',
+        // Turn the TV off if the Mirror start
+        offOnStartup: true
     }
 }
 ```
