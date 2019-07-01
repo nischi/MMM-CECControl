@@ -27,13 +27,11 @@ Module.register("MMM-CECControl",{
   },
 
   notificationReceived: function(notification, payload, sender) {
-    if (notification === 'CECControl') {
+    if (notification === 'CECControl' && this.status !== payload) {
       Log.log(this.name + " received a module notification: " + notification);
 
-      if (status !== payload) {
-        status = payload;
-        this.sendSocketNotification('CECControl', payload);
-      }
+      this.status = payload;
+      this.sendSocketNotification('CECControl', payload);
     }
   }
 });
