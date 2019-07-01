@@ -11,13 +11,10 @@ Module.register("MMM-CECControl",{
     offOnStartup: true
   },
 
-  status: 'on',
-
 	start: function() {
     this.sendSocketNotification('CONFIG', this.config);
 
     if (this.config.offOnStartup) {
-      this.status = 'off';
       this.sendSocketNotification('CECControl', 'off');
     }
   },
@@ -27,10 +24,8 @@ Module.register("MMM-CECControl",{
   },
 
   notificationReceived: function(notification, payload, sender) {
-    if (notification === 'CECControl' && this.status !== payload) {
+    if (notification === 'CECControl') {
       Log.log(this.name + " received a module notification: " + notification);
-
-      this.status = payload;
       this.sendSocketNotification('CECControl', payload);
     }
   }
