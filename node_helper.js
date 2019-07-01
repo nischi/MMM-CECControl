@@ -35,7 +35,7 @@ module.exports = NodeHelper.create({
 
 	turnOn: function() {
 		var self = this;
-		child = exec('echo "on 0" | cec-client ' + this.config.comport + ' -s -d 1', function (error, stdout, stderr) {
+		exec('echo "on 0" | cec-client ' + this.config.comport + ' -s -d 1', function (error, stdout, stderr) {
 			if (error) {
 				console.log(error);
 				return;
@@ -46,7 +46,7 @@ module.exports = NodeHelper.create({
 
 	turnOff: function() {
 		var self = this;
-		child = exec('echo "standby 0" | cec-client ' + this.config.comport + ' -s -d 1', function (error, stdout, stderr) {
+		exec('echo "standby 0" | cec-client ' + this.config.comport + ' -s -d 1', function (error, stdout, stderr) {
 			if (error) {
 				console.log(error);
 				return;
