@@ -12,6 +12,8 @@ var exec = require('child_process').exec;
 
 
 module.exports = NodeHelper.create({
+	status: '',
+
 	start: function() {
 		console.log("Starting node helper: " + this.name);
 	},
@@ -20,8 +22,8 @@ module.exports = NodeHelper.create({
 		if (notification === 'CONFIG') {
 			this.config = payload;
 		}
-		if (notification === 'CECControl') {
-      console.log('CECControl received: ', payload);
+		if (notification === 'CECControl' && this.start !== payload) {
+      console.log('CECControl received (payload, status): ', payload, this.status);
       switch (payload) {
         case 'on':
           this.turnOn();
@@ -36,6 +38,7 @@ module.exports = NodeHelper.create({
 	turnOn: function() {
 		var self = this;
 		exec('echo "on 0" | cec-client ' + this.config.comport + ' -s -d 1', function (error, stdout, stderr) {
+			this.status = 'on';
 			if (error) {
 				console.log(error);
 				return;
@@ -47,6 +50,7 @@ module.exports = NodeHelper.create({
 	turnOff: function() {
 		var self = this;
 		exec('echo "standby 0" | cec-client ' + this.config.comport + ' -s -d 1', function (error, stdout, stderr) {
+			this.status = 'off';
 			if (error) {
 				console.log(error);
 				return;
