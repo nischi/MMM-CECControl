@@ -8,7 +8,8 @@
 Module.register("MMM-CECControl",{
 	defaults: {
     comport: 'RPI',
-    offOnStartup: true
+    offOnStartup: true,
+    xscreensaver: false
   },
 
 	start: function() {

@@ -8,6 +8,7 @@
  */
 
 var NodeHelper = require("node_helper");
+const {PythonShell} = require("python-shell");
 var exec = require('child_process').exec;
 
 
@@ -43,6 +44,9 @@ module.exports = NodeHelper.create({
 				console.log(error);
 				return;
 			}
+			if (this.config.xscreensaver) {
+				self.turnOffXScreensaver();
+			}
 		  self.sendSocketNotification('TV', 'on');
 		});
 	},
@@ -56,6 +60,14 @@ module.exports = NodeHelper.create({
 				return;
 			}
 		  self.sendSocketNotification('TV', 'off');
+		});
+	},
+
+	turnOffXScreensaver: function() {
+		PythonShell.runString('import os;os.system("xscreensaver-command -deactivate");', null, function (error) {
+			if (error) {
+				console.log(error);
+			}
 		});
 	}
 });

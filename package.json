@@ -1,0 +1,30 @@
+{
+  "name": "mmm-ceccontrol",
+  "version": "1.1",
+  "description": "Control TV",
+  "main": "MMM-CECControl.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nischi/MMM-CECControl.git"
+  },
+  "keywords": [
+    "cec",
+    "control",
+    "tv",
+    "mmm",
+    "magic",
+    "mirror"
+  ],
+  "author": "Thierry Nischelwitzer",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/nischi/MMM-CECControl/issues"
+  },
+  "homepage": "https://github.com/nischi/MMM-CECControl#readme",
+  "dependencies": {
+    "python-shell": "^1.0.7"
+  }
+}
