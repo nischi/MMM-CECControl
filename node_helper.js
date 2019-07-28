@@ -13,7 +13,7 @@ var exec = require('child_process').exec;
 
 
 module.exports = NodeHelper.create({
-	status: '',
+	status: 'none',
 
 	start: function() {
 		console.log("Starting node helper: " + this.name);
@@ -24,7 +24,7 @@ module.exports = NodeHelper.create({
 			this.config = payload;
 		}
 		if (notification === 'CECControl' && this.status != payload) {
-      console.log('CECControl received (current, new): ', this.status, payload);
+      console.log('CECControl received (current, new):', this.status, payload);
       switch (payload) {
         case 'on':
           this.turnOn();
