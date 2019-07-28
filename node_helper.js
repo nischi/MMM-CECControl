@@ -44,7 +44,7 @@ module.exports = NodeHelper.create({
 				console.log(error);
 				return;
 			}
-			if (this.config.xscreensaver) {
+			if (self.config.xscreensaver) {
 				self.turnOffXScreensaver();
 			}
 		  self.sendSocketNotification('TV', 'on');
