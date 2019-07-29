@@ -14,12 +14,15 @@ var exec = require('child_process').exec;
 
 module.exports = NodeHelper.create({
 	status: 'none',
+	cecworking: false,
 
 	start: function() {
 		console.log("Starting node helper: " + this.name);
 	},
 
 	socketNotificationReceived: function(notification, payload) {
+		var self = this;
+
 		if (notification === 'CONFIG') {
 			this.config = payload;
 		}
@@ -27,10 +30,20 @@ module.exports = NodeHelper.create({
       console.log('CECControl received (current, new):', this.status, payload);
       switch (payload) {
         case 'on':
-          this.turnOn();
+					var intervalOn = setInterval(function() {
+						if (self.cecworking === false) {
+							clearInterval(intervalOn);
+							this.turnOn();
+						}
+					}, 100);
           break;
         case 'off':
-          this.turnOff();
+					var intervalOff = setInterval(function() {
+						if (self.cecworking === false) {
+							clearInterval(intervalOff);
+							this.turnOff();
+						}
+					}, 100);
           break;
       }
 		}
@@ -39,8 +52,10 @@ module.exports = NodeHelper.create({
 	turnOn: function() {
 		var self = this;
 		self.status = 'on';
+		self.cecworking = true;
 
 		exec('echo "on 0" | cec-client ' + this.config.comport + ' -s -d 1', function (error, stdout, stderr) {
+			self.cecworking = false;
 			if (error) {
 				console.log(error);
 				return;
@@ -55,7 +70,10 @@ module.exports = NodeHelper.create({
 	turnOff: function() {
 		var self = this;
 		self.status = 'off';
+		self.cecworking = true;
+
 		exec('echo "standby 0" | cec-client ' + this.config.comport + ' -s -d 1', function (error, stdout, stderr) {
+			self.cecworking = false;
 			if (error) {
 				console.log(error);
 				return;
