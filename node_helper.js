@@ -15,6 +15,8 @@ var exec = require('child_process').exec;
 module.exports = NodeHelper.create({
 	status: 'none',
 	cecworking: false,
+	intervalOn: null,
+	intervalOff: null,
 
 	start: function() {
 		console.log("Starting node helper: " + this.name);
@@ -30,17 +32,23 @@ module.exports = NodeHelper.create({
       console.log('CECControl received (current, new):', this.status, payload);
       switch (payload) {
         case 'on':
-					var intervalOn = setInterval(function() {
+					if (self.intervalOn != null) {
+						clearInterval(self.intervalOn);
+					}
+					self.intervalOn = setInterval(function() {
 						if (self.cecworking === false) {
-							clearInterval(intervalOn);
+							clearInterval(self.intervalOn);
 							self.turnOn();
 						}
 					}, 100);
           break;
         case 'off':
-					var intervalOff = setInterval(function() {
+					if (self.intervalOff != null) {
+						clearInterval(self.intervalOff);
+					}
+					self.intervalOff = setInterval(function() {
 						if (self.cecworking === false) {
-							clearInterval(intervalOff);
+							clearInterval(self.intervalOff);
 							self.turnOff();
 						}
 					}, 100);
