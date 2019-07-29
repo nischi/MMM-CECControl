@@ -33,7 +33,7 @@ module.exports = NodeHelper.create({
 					var intervalOn = setInterval(function() {
 						if (self.cecworking === false) {
 							clearInterval(intervalOn);
-							this.turnOn();
+							self.turnOn();
 						}
 					}, 100);
           break;
@@ -41,7 +41,7 @@ module.exports = NodeHelper.create({
 					var intervalOff = setInterval(function() {
 						if (self.cecworking === false) {
 							clearInterval(intervalOff);
-							this.turnOff();
+							self.turnOff();
 						}
 					}, 100);
           break;
