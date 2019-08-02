@@ -14,12 +14,38 @@ var exec = require('child_process').exec;
 
 module.exports = NodeHelper.create({
 	status: 'none',
-	cecworking: false,
-	intervalOn: null,
-	intervalOff: null,
+	queue: [],
+	queueWorking: false,
 
 	start: function() {
 		console.log("Starting node helper: " + this.name);
+	},
+
+	handleQueue: function() {
+		var self = this;
+		self.queueWorking = true;
+
+		if (self.queue.length > 0) {
+			var newStatus = self.queue.shift();
+			if (self.status != newStatus) {
+				console.log('CECControl change status (current, new):', this.status, newStatus);
+
+				switch (newStatus) {
+					case 'on':
+							self.turnOn(function() {
+								self.handleQueue();
+							});
+						break;
+					case 'off':
+							self.turnOff(function() {
+								self.handleQueue();
+							});
+						break;
+				}
+			}
+		} else {
+			self.queueWorking = false;
+		}
 	},
 
 	socketNotificationReceived: function(notification, payload) {
@@ -28,42 +54,19 @@ module.exports = NodeHelper.create({
 		if (notification === 'CONFIG') {
 			this.config = payload;
 		}
-		if (notification === 'CECControl' && this.status != payload) {
-      console.log('CECControl received (current, new):', this.status, payload);
-      switch (payload) {
-        case 'on':
-					if (self.intervalOn != null) {
-						clearInterval(self.intervalOn);
-					}
-					self.intervalOn = setInterval(function() {
-						if (self.cecworking === false) {
-							clearInterval(self.intervalOn);
-							self.turnOn();
-						}
-					}, 100);
-          break;
-        case 'off':
-					if (self.intervalOff != null) {
-						clearInterval(self.intervalOff);
-					}
-					self.intervalOff = setInterval(function() {
-						if (self.cecworking === false) {
-							clearInterval(self.intervalOff);
-							self.turnOff();
-						}
-					}, 100);
-          break;
-      }
+		if (notification === 'CECControl') {
+			self.queue.push(payload);
+			if (self.queueWorking === false) {
+				self.handleQueue();
+			}
 		}
 	},
 
-	turnOn: function() {
+	turnOn: function(callback) {
 		var self = this;
 		self.status = 'on';
-		self.cecworking = true;
 
 		exec('echo "on 0" | cec-client ' + this.config.comport + ' -s -d 1', function (error, stdout, stderr) {
-			self.cecworking = false;
 			if (error) {
 				console.log(error);
 				return;
@@ -71,22 +74,22 @@ module.exports = NodeHelper.create({
 			if (self.config.xscreensaver) {
 				self.turnOffXScreensaver();
 			}
-		  self.sendSocketNotification('TV', 'on');
+			self.sendSocketNotification('TV', 'on');
+			callback();
 		});
 	},
 
-	turnOff: function() {
+	turnOff: function(callback) {
 		var self = this;
 		self.status = 'off';
-		self.cecworking = true;
 
 		exec('echo "standby 0" | cec-client ' + this.config.comport + ' -s -d 1', function (error, stdout, stderr) {
-			self.cecworking = false;
 			if (error) {
 				console.log(error);
 				return;
 			}
 		  self.sendSocketNotification('TV', 'off');
+			callback();
 		});
 	},
 
