@@ -40,6 +40,10 @@ module.exports = NodeHelper.create({
 							self.turnOff(function() {
 								self.handleQueue();
 							});
+					case 'as':
+							self.activeSource(function() {
+								self.handleQueue();
+							});
 						break;
 				}
 			}
@@ -89,6 +93,19 @@ module.exports = NodeHelper.create({
 				return;
 			}
 		  self.sendSocketNotification('TV', 'off');
+			callback();
+		});
+	},
+
+	activeSource: function (callback) {
+		var self = this;
+
+		exec('echo "as" | cec-client ' + this.config.comport + ' -s -d 1', function (error, stdout, stderr) {
+			if (error) {
+				console.log(error);
+				return;
+			}
+			self.sendSocketNotification('TV', 'as');
 			callback();
 		});
 	},

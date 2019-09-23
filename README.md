@@ -54,3 +54,9 @@ To turn the TV on or of from another Module you need to send a notification.
 this.sendNotification('CECControl', 'on');
 this.sendNotification('CECControl', 'off');
 ```
+
+To make the CEC adapter the `as` active source (so the TV switches to the Raspberry Pi HDMI source after the TV is powered on).
+
+```javascript
+this.sendNotification('CECControl', 'as');
+```
