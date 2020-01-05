@@ -68,11 +68,19 @@ module.exports = NodeHelper.create({
 		}
 	},
 
+	turnOnCEC: function(commandCallback,queueCallback) {
+		exec('echo "on 0" | cec-client ' + this.config.comport + ' -s -d 1', callback);
+	},
+
+	turnOnVCGENcmd: function(callback) {
+		exec('vcgencmd display_power 1', callback);
+	},
+
+
 	turnOn: function(callback) {
 		var self = this;
 		self.status = 'on';
-
-		exec('echo "on 0" | cec-client ' + this.config.comport + ' -s -d 1', function (error, stdout, stderr) {
+		var cmdResultCallback = function (error, stdout, stderr) {
 			if (error) {
 				console.log(error);
 				return;
@@ -82,21 +90,40 @@ module.exports = NodeHelper.create({
 			}
 			self.sendSocketNotification('TV', 'on');
 			callback();
-		});
+		}
+
+		if(this.config.vcgencmd) {
+			this.turnOnVCGENcmd(cmdResultCallback);
+		} else {
+			this.turnOnCEC(cmdResultCallback);
+		}
+	},
+
+	turnOffCEC: function(callback) {
+		exec('echo "standby 0" | cec-client ' + this.config.comport + ' -s -d 1', callback);
+	},
+	turnOffVCGENcmd: function(callback) {
+		exec('vcgencmd display_power 0', callback);
 	},
 
 	turnOff: function(callback) {
 		var self = this;
 		self.status = 'off';
 
-		exec('echo "standby 0" | cec-client ' + this.config.comport + ' -s -d 1', function (error, stdout, stderr) {
+		var cmdResultCallback = function (error, stdout, stderr) {
 			if (error) {
 				console.log(error);
 				return;
 			}
 		  self.sendSocketNotification('TV', 'off');
 			callback();
-		});
+		}
+
+		if(this.config.vcgencmd) {
+			this.turnOffVCGENcmd(cmdResultCallback);
+		} else {
+			this.turnOffCEC(cmdResultCallback);
+		}
 	},
 
 	activeSource: function (callback) {
