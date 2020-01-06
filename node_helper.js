@@ -129,6 +129,13 @@ module.exports = NodeHelper.create({
 	activeSource: function (callback) {
 		var self = this;
 
+		if(this.config.vcgencmd) {
+			// Fake the active source 
+			self.sendSocketNotification('TV', 'as');
+			callback();
+			return;
+		}
+
 		exec('echo "as" | cec-client ' + this.config.comport + ' -s -d 1', function (error, stdout, stderr) {
 			if (error) {
 				console.log(error);
