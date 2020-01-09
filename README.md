@@ -41,7 +41,9 @@ Config | Description
         // Turn the TV off if the Mirror start
         offOnStartup: true,
         // Turn xScreensaver off if TV turn on
-        xscreensaver: false
+        xscreensaver: false,
+        // Use `vcgencmd` command instead of CEC which works better for monitors
+        vcgencmd: false
     }
 }
 ```
