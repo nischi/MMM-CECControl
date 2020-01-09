@@ -46,6 +46,8 @@ module.exports = NodeHelper.create({
 							});
 						break;
 				}
+			} else {
+				self.queueWorking = false;
 			}
 		} else {
 			self.queueWorking = false;
