@@ -8,9 +8,7 @@
  */
 
 var NodeHelper = require("node_helper");
-const {PythonShell} = require("python-shell");
 var exec = require('child_process').exec;
-
 
 module.exports = NodeHelper.create({
 	status: 'none',
@@ -72,10 +70,13 @@ module.exports = NodeHelper.create({
 		exec('echo "on 0" | cec-client ' + this.config.comport + ' -s -d 1', callback);
 	},
 
-	turnOnVCGENcmd: function(callback) {
-		exec('vcgencmd display_power 1', callback);
-	},
+        turnOffCEC: function(callback) {
+                exec('echo "standby 0" | cec-client ' + this.config.comport + ' -s -d 1', callback);
+        },
 
+	runCustomCmd: function(command, callback) {
+		exec(command, callback);
+	},
 
 	turnOn: function(callback) {
 		var self = this;
@@ -92,18 +93,11 @@ module.exports = NodeHelper.create({
 			callback();
 		}
 
-		if(this.config.vcgencmd) {
-			this.turnOnVCGENcmd(cmdResultCallback);
+		if(this.config.useCustomCmd) {
+			this.runCustomCmd(self.config.customCmdOn, cmdResultCallback);
 		} else {
 			this.turnOnCEC(cmdResultCallback);
 		}
-	},
-
-	turnOffCEC: function(callback) {
-		exec('echo "standby 0" | cec-client ' + this.config.comport + ' -s -d 1', callback);
-	},
-	turnOffVCGENcmd: function(callback) {
-		exec('vcgencmd display_power 0', callback);
 	},
 
 	turnOff: function(callback) {
@@ -119,8 +113,8 @@ module.exports = NodeHelper.create({
 			callback();
 		}
 
-		if(this.config.vcgencmd) {
-			this.turnOffVCGENcmd(cmdResultCallback);
+		if(this.config.useCustomCmd) {
+			this.runCustomCmd(self.config.customCmdOff, cmdResultCallback);
 		} else {
 			this.turnOffCEC(cmdResultCallback);
 		}
@@ -129,7 +123,7 @@ module.exports = NodeHelper.create({
 	activeSource: function (callback) {
 		var self = this;
 
-		if(this.config.vcgencmd) {
+		if(this.config.useCustomCmd) {
 			// Fake the active source 
 			self.sendSocketNotification('TV', 'as');
 			callback();
@@ -147,10 +141,11 @@ module.exports = NodeHelper.create({
 	},
 
 	turnOffXScreensaver: function() {
-		PythonShell.runString('import os;os.system("xscreensaver-command -deactivate");', null, function (error) {
-			if (error) {
-				console.log(error);
-			}
+                exec('xscreensaver-command -deactivate', function (error, stdout, stderr) {
+                        if (error) {
+                                console.log(error);
+                                return;
+                        }
 		});
 	}
 });
