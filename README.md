@@ -28,8 +28,10 @@ Config | Description
 --- | ---
 `comport` | Comport of your Raspberry Pi <br />**Default Value:** `RPI`
 `offOnStartup` | Turn the TV off if the Mirror start <br />**Default Value:** `true`
-`xscreensaver` | Turn xScreensaver off if TV turn on. You need to have `sudo apt-get install xscreensaver` installed.
-`vcgencmd` | Use vcgencmd instead of CEC. <br />**Default Value:** `false`
+`xscreensaver` | Turn xScreensaver off if TV turn on. You need to have xscreensaver installed (Run `sudo apt-get install xscreensaver` to install).
+`useCustomCmd` | Use custom commands for TV on / off instead of CEC.<br />**Default Value:** `false`
+`customCmdOn` | Custom command for turning the TV on.<br />**Default Value:** `vcgencmd display_power 1`
+`customCmdOff` | Custom command for turning the TV off.<br />**Default Value:** `vcgencmd display_power 0`
 
 ### Full configuration of the module
 
@@ -43,8 +45,12 @@ Config | Description
         offOnStartup: true,
         // Turn xScreensaver off if TV turn on
         xscreensaver: false,
-        // Use `vcgencmd` command instead of CEC which works better for monitors
-        vcgencmd: false
+        // Use customCmdOn and customCmdOff instead of CEC
+        useCustomCmd: false
+        // Custom command to run to turn TV on
+        customCmdOn: 'vcgencmd display_power 1'
+        // Custom command to run to turn TV off
+        customCmdOff: 'vcgencmd display_power 0'
     }
 }
 ```
