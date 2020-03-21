@@ -8,16 +8,24 @@ exports.MMMCECControlModule = {
     customCmdOff: 'vcgencmd display_power 0',
   },
 
+  sendSocketNotificationWrapper: function(text, payload) {
+    this.sendSocketNotification(text, payload);
+  },
+
+  log: function(message) {
+    Log.log(message);
+  },
+
   start: function() {
-    this.sendSocketNotification('CONFIG', this.config);
+    this.sendSocketNotificationWrapper('CONFIG', this.config);
 
     if (this.config.offOnStartup) {
-      this.sendSocketNotification('CECControl', 'off');
+      this.sendSocketNotificationWrapper('CECControl', 'off');
     }
   },
 
   socketNotificationReceived: function(notification, payload) {
-    Log.log(
+    this.log(
       this.name +
         ' received a socket notification: ' +
         notification +
@@ -28,8 +36,8 @@ exports.MMMCECControlModule = {
 
   notificationReceived: function(notification, payload, sender) {
     if (notification === 'CECControl') {
-      Log.log(this.name + ' received a module notification: ' + notification);
-      this.sendSocketNotification('CECControl', payload);
+      this.log(this.name + ' received a module notification: ' + notification);
+      this.sendSocketNotificationWrapper('CECControl', payload);
     }
   },
 };

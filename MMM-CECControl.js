@@ -6,4 +6,4 @@
  */
 
 const MMMCECControlModule = require('./MMM-CECControlModule');
-Module.register('MMM-CECControl', MMMCECControlModule);
+Module.register('MMM-CECControl', MMMCECControlModule.MMMCECControlModule);

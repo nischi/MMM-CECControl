@@ -1,10 +1,10 @@
 {
   "name": "mmm-ceccontrol",
-  "version": "1.4",
+  "version": "1.4.0",
   "description": "Control TV",
   "main": "MMM-CECControl.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "npx jamsine"
   },
   "repository": {
     "type": "git",
@@ -33,6 +33,7 @@
     "eslint-plugin-import": "^2.20.1",
     "eslint-plugin-node": "^11.0.0",
     "eslint-plugin-promise": "^4.2.1",
-    "eslint-plugin-standard": "^4.0.1"
+    "eslint-plugin-standard": "^4.0.1",
+    "jasmine": "^3.5.0"
   }
 }

@@ -40,7 +40,7 @@ exports.MMMCECControlNodeHelper = {
             break;
         }
       } else {
-        self.queueWorking = false;
+        self.handleQueue();
       }
     } else {
       self.queueWorking = false;
@@ -62,21 +62,17 @@ exports.MMMCECControlNodeHelper = {
   },
 
   turnOnCEC: function(commandCallback, queueCallback) {
-    exec(
+    this.execWrapper(
       'echo "on 0" | cec-client ' + this.config.comport + ' -s -d 1',
       callback
     );
   },
 
   turnOffCEC: function(callback) {
-    exec(
+    this.execWrapper(
       'echo "standby 0" | cec-client ' + this.config.comport + ' -s -d 1',
       callback
     );
-  },
-
-  runCustomCmd: function(command, callback) {
-    exec(command, callback);
   },
 
   turnOn: function(callback) {
@@ -90,12 +86,12 @@ exports.MMMCECControlNodeHelper = {
       if (self.config.xscreensaver) {
         self.turnOffXScreensaver();
       }
-      self.sendSocketNotification('TV', 'on');
+      self.sendSocketNotificationWrapper('TV', 'on');
       callback();
     };
 
     if (this.config.useCustomCmd) {
-      this.runCustomCmd(self.config.customCmdOn, cmdResultCallback);
+      this.execWrapper(self.config.customCmdOn, cmdResultCallback);
     } else {
       this.turnOnCEC(cmdResultCallback);
     }
@@ -110,12 +106,12 @@ exports.MMMCECControlNodeHelper = {
         console.log(error);
         return;
       }
-      self.sendSocketNotification('TV', 'off');
+      self.sendSocketNotificationWrapper('TV', 'off');
       callback();
     };
 
     if (this.config.useCustomCmd) {
-      this.runCustomCmd(self.config.customCmdOff, cmdResultCallback);
+      this.execWrapper(self.config.customCmdOff, cmdResultCallback);
     } else {
       this.turnOffCEC(cmdResultCallback);
     }
@@ -126,30 +122,41 @@ exports.MMMCECControlNodeHelper = {
 
     if (this.config.useCustomCmd) {
       // Fake the active source
-      self.sendSocketNotification('TV', 'as');
+      self.sendSocketNotificationWrapper('TV', 'as');
       callback();
       return;
     }
 
-    exec('echo "as" | cec-client ' + this.config.comport + ' -s -d 1', function(
+    this.execWrapper(
+      'echo "as" | cec-client ' + this.config.comport + ' -s -d 1',
+      function(error, stdout, stderr) {
+        if (error) {
+          console.log(error);
+          return;
+        }
+        self.sendSocketNotificationWrapper('TV', 'as');
+        callback();
+      }
+    );
+  },
+
+  turnOffXScreensaver: function() {
+    this.execWrapper('xscreensaver-command -deactivate', function(
       error,
       stdout,
       stderr
     ) {
       if (error) {
         console.log(error);
-        return;
       }
-      self.sendSocketNotification('TV', 'as');
-      callback();
     });
   },
 
-  turnOffXScreensaver: function() {
-    exec('xscreensaver-command -deactivate', function(error, stdout, stderr) {
-      if (error) {
-        console.log(error);
-      }
-    });
+  execWrapper(command, callback) {
+    exec(command, callback);
+  },
+
+  sendSocketNotificationWrapper(message, payload) {
+    this.sendSocketNotification('TV', 'as');
   },
 };
