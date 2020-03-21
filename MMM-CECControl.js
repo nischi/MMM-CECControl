@@ -12,14 +12,14 @@ Module.register('MMM-CECControl', {
     xscreensaver: false,
     useCustomCmd: false,
     customCmdOn: 'vcgencmd display_power 1',
-    customCmdOff: 'vcgencmd display_power 0'
+    customCmdOff: 'vcgencmd display_power 0',
   },
 
   start: function() {
-    this.sendSocketNotification('CONFIG', this.config)
+    this.sendSocketNotification('CONFIG', this.config);
 
     if (this.config.offOnStartup) {
-      this.sendSocketNotification('CECControl', 'off')
+      this.sendSocketNotification('CECControl', 'off');
     }
   },
 
@@ -30,13 +30,13 @@ Module.register('MMM-CECControl', {
         notification +
         ' - Payload: ' +
         payload
-    )
+    );
   },
 
   notificationReceived: function(notification, payload, sender) {
     if (notification === 'CECControl') {
-      Log.log(this.name + ' received a module notification: ' + notification)
-      this.sendSocketNotification('CECControl', payload)
+      Log.log(this.name + ' received a module notification: ' + notification);
+      this.sendSocketNotification('CECControl', payload);
     }
   },
-})
+});
