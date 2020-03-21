@@ -1,6 +1,6 @@
 const exec = require('child_process').exec;
 
-export default {
+exports.MMMCECControlNodeHelper = {
   status: 'none',
   queue: [],
   queueWorking: false,

@@ -1,4 +1,4 @@
-export default {
+exports.MMMCECControlModule = {
   defaults: {
     comport: 'RPI',
     offOnStartup: true,

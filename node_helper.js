@@ -7,7 +7,7 @@
  * MIT Licensed.
  */
 
-const MMMCECControlNodeHelper = require('MMM-CECControlNodeHelper');
+const MMMCECControlNodeHelper = require('./MMM-CECControlNodeHelper');
 const NodeHelper = require('node_helper');
 
 module.exports = NodeHelper.create(MMMCECControlNodeHelper);
