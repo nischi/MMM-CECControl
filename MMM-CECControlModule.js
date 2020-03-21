@@ -1,4 +1,4 @@
-module.export = {
+export default {
   defaults: {
     comport: 'RPI',
     offOnStartup: true,

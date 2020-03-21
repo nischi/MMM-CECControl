@@ -1,6 +1,6 @@
 const exec = require('child_process').exec;
 
-module.export = {
+export default {
   status: 'none',
   queue: [],
   queueWorking: false,
