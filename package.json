@@ -1,6 +1,6 @@
 {
   "name": "mmm-ceccontrol",
-  "version": "1.3",
+  "version": "1.4",
   "description": "Control TV",
   "main": "MMM-CECControl.js",
   "scripts": {
