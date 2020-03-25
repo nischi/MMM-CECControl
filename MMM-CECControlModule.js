@@ -1,4 +1,4 @@
-exports.MMMCECControlModule = {
+export const MMMCECControlModule = {
   defaults: {
     comport: 'RPI',
     offOnStartup: true,

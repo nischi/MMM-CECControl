@@ -5,5 +5,5 @@
  * MIT Licensed.
  */
 
-const MMMCECControlModule = require('./MMM-CECControlModule');
-Module.register('MMM-CECControl', MMMCECControlModule.MMMCECControlModule);
+import MMMCECControlModule from './MMM-CECControlModule';
+Module.register('MMM-CECControl', MMMCECControlModule);
