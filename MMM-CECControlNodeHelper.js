@@ -61,7 +61,7 @@ exports.MMMCECControlNodeHelper = {
     }
   },
 
-  turnOnCEC: function(commandCallback, queueCallback) {
+  turnOnCEC: function(callback) {
     this.execWrapper(
       'echo "on 0" | cec-client ' + this.config.comport + ' -s -d 1',
       callback
