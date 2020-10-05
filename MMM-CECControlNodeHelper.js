@@ -5,11 +5,11 @@ exports.MMMCECControlNodeHelper = {
   queue: [],
   queueWorking: false,
 
-  start: function() {
+  start: function () {
     console.log('Starting node helper: ' + this.name);
   },
 
-  handleQueue: function() {
+  handleQueue: function () {
     var self = this;
     self.queueWorking = true;
 
@@ -24,17 +24,17 @@ exports.MMMCECControlNodeHelper = {
 
         switch (newStatus) {
           case 'on':
-            self.turnOn(function() {
+            self.turnOn(function () {
               self.handleQueue();
             });
             break;
           case 'off':
-            self.turnOff(function() {
+            self.turnOff(function () {
               self.handleQueue();
             });
             break;
           case 'as':
-            self.activeSource(function() {
+            self.activeSource(function () {
               self.handleQueue();
             });
             break;
@@ -47,7 +47,7 @@ exports.MMMCECControlNodeHelper = {
     }
   },
 
-  socketNotificationReceived: function(notification, payload) {
+  socketNotificationReceived: function (notification, payload) {
     var self = this;
 
     if (notification === 'CONFIG') {
@@ -61,24 +61,24 @@ exports.MMMCECControlNodeHelper = {
     }
   },
 
-  turnOnCEC: function(callback) {
+  turnOnCEC: function (callback) {
     this.execWrapper(
       'echo "on 0" | cec-client ' + this.config.comport + ' -s -d 1',
       callback
     );
   },
 
-  turnOffCEC: function(callback) {
+  turnOffCEC: function (callback) {
     this.execWrapper(
       'echo "standby 0" | cec-client ' + this.config.comport + ' -s -d 1',
       callback
     );
   },
 
-  turnOn: function(callback) {
+  turnOn: function (callback) {
     var self = this;
     self.status = 'on';
-    var cmdResultCallback = function(error, stdout, stderr) {
+    var cmdResultCallback = function (error, stdout, stderr) {
       if (error) {
         console.log(error);
         return;
@@ -97,11 +97,11 @@ exports.MMMCECControlNodeHelper = {
     }
   },
 
-  turnOff: function(callback) {
+  turnOff: function (callback) {
     var self = this;
     self.status = 'off';
 
-    var cmdResultCallback = function(error, stdout, stderr) {
+    var cmdResultCallback = function (error, stdout, stderr) {
       if (error) {
         console.log(error);
         return;
@@ -117,7 +117,7 @@ exports.MMMCECControlNodeHelper = {
     }
   },
 
-  activeSource: function(callback) {
+  activeSource: function (callback) {
     var self = this;
 
     if (this.config.useCustomCmd) {
@@ -129,7 +129,7 @@ exports.MMMCECControlNodeHelper = {
 
     this.execWrapper(
       'echo "as" | cec-client ' + this.config.comport + ' -s -d 1',
-      function(error, stdout, stderr) {
+      function (error, stdout, stderr) {
         if (error) {
           console.log(error);
           return;
@@ -140,8 +140,8 @@ exports.MMMCECControlNodeHelper = {
     );
   },
 
-  turnOffXScreensaver: function() {
-    this.execWrapper('xscreensaver-command -deactivate', function(
+  turnOffXScreensaver: function () {
+    this.execWrapper('xscreensaver-command -deactivate', function (
       error,
       stdout,
       stderr
