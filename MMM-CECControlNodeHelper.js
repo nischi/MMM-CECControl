@@ -63,14 +63,14 @@ exports.MMMCECControlNodeHelper = {
 
   turnOnCEC: function (callback) {
     this.execWrapper(
-      'echo "on 0" | cec-client ' + this.config.comport + ' -s -d 1',
+      '/opt/vc/bin/tvservice -p && sudo chvt 6 && sudo chvt 7',
       callback
     );
   },
 
   turnOffCEC: function (callback) {
     this.execWrapper(
-      'echo "standby 0" | cec-client ' + this.config.comport + ' -s -d 1',
+      '/opt/vc/bin/tvservice -o',
       callback
     );
   },

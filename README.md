@@ -1,12 +1,9 @@
 # MMM-CECControl
 
-Control your HDMI-TV to turn it on and off. It works only with another compatible module which send the correct Event to this module which can turn the TV off or on.
+Fork from [MMM-CECControl](https://github.com/nischi/MMM-CECControl "MMM-CECControl")<br>
+It works with [MMM-MotionControl](https://github.com/nischi/MMM-MotionControl "MMM-MotionControl"). Together, they are able to turn on the screen when a person is in front of the Mirror and turn it off when that person leaves. It works with a Raspberry Pi Camera. <br>
 
-For example my other little Project [MMM-MotionControl](https://github.com/nischi/MMM-MotionControl "MMM-MotionControl") which turn the TV on when a person is on front of the Mirror and turn it off if they leave, all that work with a Raspberry Pi Camera.
-
-## Screenshot
-
-We can't do a Screenshot because it runs in the background :) It's only react on some events to turn the TV on and off.
+The difference with the original [MMM-CECControl](https://github.com/nischi/MMM-CECControl "MMM-CECControl") are the functions `turnOnCEC` and `turnOffCEC` in **MMM-CECControlNodeHelper.js**
 
 ## Dependencies
 
