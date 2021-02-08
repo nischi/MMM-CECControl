@@ -63,7 +63,7 @@ exports.MMMCECControlNodeHelper = {
 
   turnOnCEC: function (callback) {
     this.execWrapper(
-      '/opt/vc/bin/tvservice -p && sudo chvt 6 && sudo chvt 7',
+      '/opt/vc/bin/tvservice -p && chvt 6 && chvt 7',
       callback
     );
   },
