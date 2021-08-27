@@ -63,14 +63,14 @@ exports.MMMCECControlNodeHelper = {
 
   turnOnCEC: function (callback) {
     this.execWrapper(
-      '/opt/vc/bin/tvservice -p && chvt 6 && chvt 7',
+      'echo "on 0" | cec-client ' + this.config.comport + ' -s -d 1',
       callback
     );
   },
 
   turnOffCEC: function (callback) {
     this.execWrapper(
-      '/opt/vc/bin/tvservice -o',
+      'echo "standby 0" | cec-client ' + this.config.comport + ' -s -d 1',
       callback
     );
   },
@@ -141,15 +141,14 @@ exports.MMMCECControlNodeHelper = {
   },
 
   turnOffXScreensaver: function () {
-    this.execWrapper('xscreensaver-command -deactivate', function (
-      error,
-      stdout,
-      stderr
-    ) {
-      if (error) {
-        console.log(error);
+    this.execWrapper(
+      'xscreensaver-command -deactivate',
+      function (error, stdout, stderr) {
+        if (error) {
+          console.log(error);
+        }
       }
-    });
+    );
   },
 
   execWrapper(command, callback) {
