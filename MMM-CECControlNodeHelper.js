@@ -1,161 +1,122 @@
-const exec = require('child_process').exec;
+'use strict';
 
-exports.MMMCECControlNodeHelper = {
+/* Magic Mirror
+ * Module: MMM-CECControl
+ *
+ * By Thierry Nischelwitzer http://nischi.ch
+ * MIT Licensed.
+ *
+ * Backend logic for the node_helper. Kept as a plain object so it can be mixed
+ * into NodeHelper.create() and unit-tested in isolation (see spec/).
+ */
+
+const { execFile, execShell } = require('./lib/exec');
+const { createDriver } = require('./lib/drivers');
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const MMMCECControlNodeHelper = {
   status: 'none',
   queue: [],
   queueWorking: false,
+  driver: null,
 
-  start: function () {
+  start() {
     console.log('Starting node helper: ' + this.name);
   },
 
-  handleQueue: function () {
-    var self = this;
-    self.queueWorking = true;
-
-    if (self.queue.length > 0) {
-      var newStatus = self.queue.shift();
-      if (self.status !== newStatus) {
-        console.log(
-          'CECControl change status (current, new):',
-          this.status,
-          newStatus
-        );
-
-        switch (newStatus) {
-          case 'on':
-            self.turnOn(function () {
-              self.handleQueue();
-            });
-            break;
-          case 'off':
-            self.turnOff(function () {
-              self.handleQueue();
-            });
-            break;
-          case 'as':
-            self.activeSource(function () {
-              self.handleQueue();
-            });
-            break;
-        }
-      } else {
-        self.handleQueue();
-      }
-    } else {
-      self.queueWorking = false;
-    }
+  log(message) {
+    console.log('[MMM-CECControl] ' + message);
   },
 
-  socketNotificationReceived: function (notification, payload) {
-    var self = this;
-
+  socketNotificationReceived(notification, payload) {
     if (notification === 'CONFIG') {
       this.config = payload;
-    }
-    if (notification === 'CECControl') {
-      self.queue.push(payload);
-      if (self.queueWorking === false) {
-        self.handleQueue();
-      }
-    }
-  },
-
-  turnOnCEC: function (callback) {
-    this.execWrapper(
-      'echo "on 0" | cec-client ' + this.config.comport + ' -s -d 1',
-      callback
-    );
-  },
-
-  turnOffCEC: function (callback) {
-    this.execWrapper(
-      'echo "standby 0" | cec-client ' + this.config.comport + ' -s -d 1',
-      callback
-    );
-  },
-
-  turnOn: function (callback) {
-    var self = this;
-    self.status = 'on';
-    var cmdResultCallback = function (error, stdout, stderr) {
-      if (error) {
-        console.log(error);
-        return;
-      }
-      if (self.config.xscreensaver) {
-        self.turnOffXScreensaver();
-      }
-      self.sendSocketNotificationWrapper('TV', 'on');
-      callback();
-    };
-
-    if (this.config.useCustomCmd) {
-      this.execWrapper(self.config.customCmdOn, cmdResultCallback);
-    } else {
-      this.turnOnCEC(cmdResultCallback);
-    }
-  },
-
-  turnOff: function (callback) {
-    var self = this;
-    self.status = 'off';
-
-    var cmdResultCallback = function (error, stdout, stderr) {
-      if (error) {
-        console.log(error);
-        return;
-      }
-      self.sendSocketNotificationWrapper('TV', 'off');
-      callback();
-    };
-
-    if (this.config.useCustomCmd) {
-      this.execWrapper(self.config.customCmdOff, cmdResultCallback);
-    } else {
-      this.turnOffCEC(cmdResultCallback);
-    }
-  },
-
-  activeSource: function (callback) {
-    var self = this;
-
-    if (this.config.useCustomCmd) {
-      // Fake the active source
-      self.sendSocketNotificationWrapper('TV', 'as');
-      callback();
+      this.initDriver();
       return;
     }
-
-    this.execWrapper(
-      'echo "as" | cec-client ' + this.config.comport + ' -s -d 1',
-      function (error, stdout, stderr) {
-        if (error) {
-          console.log(error);
-          return;
-        }
-        self.sendSocketNotificationWrapper('TV', 'as');
-        callback();
+    if (notification === 'CECControl') {
+      this.queue.push(payload);
+      if (!this.queueWorking) {
+        this.handleQueue();
       }
-    );
+    }
   },
 
-  turnOffXScreensaver: function () {
-    this.execWrapper(
-      'xscreensaver-command -deactivate',
-      function (error, stdout, stderr) {
-        if (error) {
-          console.log(error);
+  initDriver() {
+    const runtime = {
+      execFile,
+      execShell,
+      sleep,
+      log: (message) => this.log(message),
+    };
+    try {
+      this.driver = createDriver(this.config, runtime);
+      this.log(`using backend: ${this.driver.name}`);
+      if (typeof this.driver.setup === 'function') {
+        Promise.resolve(this.driver.setup()).catch((err) =>
+          this.log('driver setup failed: ' + err.message)
+        );
+      }
+    } catch (err) {
+      this.log('failed to create driver: ' + err.message);
+      this.driver = null;
+    }
+  },
+
+  // Serialize on/off/as requests so overlapping events never race, and skip
+  // commands that would not change the current state.
+  async handleQueue() {
+    this.queueWorking = true;
+    try {
+      while (this.queue.length > 0) {
+        const next = this.queue.shift();
+        if (next === this.status) {
+          continue;
+        }
+        try {
+          await this.runAction(next);
+          this.status = next;
+          this.sendSocketNotification('TV', next);
+        } catch (err) {
+          this.log(`action '${next}' failed: ` + err.message);
+          // Leave status unchanged so a later request can retry.
         }
       }
-    );
+    } finally {
+      this.queueWorking = false;
+    }
   },
 
-  execWrapper(command, callback) {
-    exec(command, callback);
+  async runAction(action) {
+    if (!this.driver) {
+      throw new Error('no driver configured');
+    }
+    switch (action) {
+      case 'on':
+        await this.driver.on();
+        if (this.config.xscreensaver) {
+          await this.deactivateScreensaver();
+        }
+        break;
+      case 'off':
+        await this.driver.off();
+        break;
+      case 'as':
+        await this.driver.activeSource();
+        break;
+      default:
+        throw new Error(`unknown action '${action}'`);
+    }
   },
 
-  sendSocketNotificationWrapper(message, payload) {
-    this.sendSocketNotification('TV', 'as');
+  async deactivateScreensaver() {
+    try {
+      await execFile('xscreensaver-command', ['-deactivate']);
+    } catch (err) {
+      this.log('xscreensaver-command failed: ' + err.message);
+    }
   },
 };
+
+module.exports = { MMMCECControlNodeHelper };
