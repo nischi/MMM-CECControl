@@ -34,6 +34,10 @@ A MagicMirror module has two halves that talk over socket notifications: a **fro
 4. The command is dispatched to the configured **backend** (see below), which runs the actual shell command(s) that control the TV.
 5. When the action completes, the module emits a `TV` notification (`'on'` / `'off'` / `'as'`) that other modules can listen for.
 
+Before the first command runs, the queue waits for the backend's one-time **initialization** to finish. For `cec-ctl` that's claiming a logical address (`--playback`); sending a CEC command before it completes fails with _Unregistered_. If initialization fails, the error is logged and commands are still attempted, so a temporary problem never blocks the module permanently.
+
+If a command fails, the module logs it and leaves its recorded state unchanged, so a later request can retry. Note that it does **not** retry on its own — a sender that only emits on state changes (like MMM-MotionControl) will not re-send until its own state flips.
+
 > **A note on CEC wake timing:** TVs can take several seconds to wake from standby (a Samsung tested here took ~5–7 s). The default `cec-ctl` backend polls the TV's power state until it reports `on` before switching the input to the Pi, so the active-source command doesn't get dropped. Turning the TV **off** is effectively immediate.
 
 ## Backends
@@ -85,16 +89,49 @@ The module supports several **backends**. The default, `cec-ctl`, uses HDMI-CEC 
 
 ## Dependencies
 
-For the default `cec-ctl` backend you need `v4l-utils` (it provides the `cec-ctl` command). It's already present on the Raspberry Pi OS **Desktop** image. If you're on **Lite** or it's missing, install it — this is a no-op if you already have it:
+Each backend needs its own command-line tool. You only need the one for the backend you configure — install commands are safe to re-run if the tool is already present.
+
+### `cec-ctl` (default)
+
+Provided by **`v4l-utils`**. Already present on the Raspberry Pi OS **Desktop** image; install it on **Lite** or if it's missing:
 
 ```bash
 sudo apt-get update
 sudo apt-get install v4l-utils
+which cec-ctl                 # verify
+cec-ctl -d /dev/cec0          # should report your TV
 ```
 
-You can check whether it's already installed with `which cec-ctl`.
+### `cec-client` (legacy)
 
-The other backends rely on tools you likely already have: `wlr-randr` (Wayland), `vcgencmd` (Raspberry Pi firmware), and `cec-client` (only on older systems, from `cec-utils`).
+Shipped by the `cec-utils` package on older Raspberry Pi OS releases (Bullseye and earlier). It is generally **not available on Bookworm** — use `cec-ctl` there instead.
+
+```bash
+which cec-client              # verify it exists before choosing this backend
+echo "scan" | cec-client -s -d 1
+```
+
+### `wlr-randr`
+
+Only useful in a **Wayland** session (the default on Bookworm Desktop).
+
+```bash
+sudo apt-get install wlr-randr
+wlr-randr                     # lists outputs; use the name for `output`
+```
+
+### `vcgencmd`
+
+Ships with Raspberry Pi OS as part of the Raspberry Pi firmware tools — there is normally nothing to install, and it is not available on non-Pi hardware.
+
+```bash
+which vcgencmd                # verify
+vcgencmd display_power        # prints the current state
+```
+
+### `custom`
+
+No dependency of its own — you supply the commands via `customCmdOn` / `customCmdOff`. Run them by hand first to confirm they work as the MagicMirror user.
 
 ## Installation
 
@@ -133,6 +170,37 @@ Add the module to the `modules` array in `config/config.js`:
     offOnStartup: true,          // turn the TV off when the mirror starts
   }
 }
+```
+
+### One example per backend
+
+```javascript
+// cec-ctl (default) — real CEC on/off plus input switching
+{ module: 'MMM-CECControl', config: {
+    backend: 'cec-ctl', cecDevice: '/dev/cec0', physAddr: '1.0.0.0',
+} }
+
+// cec-client — legacy libcec, pre-Bookworm only
+{ module: 'MMM-CECControl', config: {
+    backend: 'cec-client', comport: 'RPI',
+} }
+
+// wlr-randr — Wayland display power, no input switching
+{ module: 'MMM-CECControl', config: {
+    backend: 'wlr-randr', output: 'HDMI-A-1', waylandDisplay: 'wayland-1',
+} }
+
+// vcgencmd — legacy display power, no input switching
+{ module: 'MMM-CECControl', config: {
+    backend: 'vcgencmd',
+} }
+
+// custom — your own shell commands
+{ module: 'MMM-CECControl', config: {
+    backend: 'custom',
+    customCmdOn: 'vcgencmd display_power 1',
+    customCmdOff: 'vcgencmd display_power 0',
+} }
 ```
 
 All options (with defaults):
@@ -177,6 +245,17 @@ notificationReceived: function (notification, payload) {
   }
 }
 ```
+
+### With MMM-MotionControl
+
+No extra wiring is needed: [MMM-MotionControl](https://github.com/nischi/MMM-MotionControl) already sends `CECControl` `'on'` / `'off'` on presence changes. Add both modules to `config/config.js` and they talk over the notification bus:
+
+```javascript
+{ module: 'MMM-CECControl', config: { backend: 'cec-ctl' } },
+{ module: 'MMM-MotionControl', config: { useCameraMotion: true, delay: 15000 } },
+```
+
+MMM-MotionControl only emits on real transitions, so it never sends `'as'` — with the `cec-ctl` backend the input switch happens automatically as part of `'on'` (`sendActiveSourceOnOn`).
 
 ## Troubleshooting
 

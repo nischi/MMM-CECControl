@@ -29,6 +29,7 @@ beforeEach(() => {
   helper.queue = [];
   helper.queueWorking = false;
   helper.driver = null;
+  helper.ready = null;
   helper.config = {};
   helper.sendSocketNotification = vi.fn();
   helper.log = vi.fn();
@@ -43,6 +44,44 @@ describe('socketNotificationReceived', () => {
     expect(helper.config.backend).toBe('cec-ctl');
     expect(helper.driver).not.toBeNull();
     expect(helper.driver.name).toBe('cec-ctl');
+  });
+
+  it('waits for the driver setup before running the first command', async () => {
+    // cec-ctl claims its logical address in setup(); transmitting before that
+    // completes fails with "Unregistered" on the real adapter.
+    const order = [];
+    const driver = fakeDriver();
+    driver.setup.mockImplementation(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 10));
+      order.push('setup');
+    });
+    driver.off.mockImplementation(async () => {
+      order.push('off');
+    });
+    vi.spyOn(helper, 'createDriver').mockReturnValue(driver);
+
+    helper.socketNotificationReceived('CONFIG', { backend: 'cec-ctl' });
+    helper.queue.push('off');
+    await helper.handleQueue();
+
+    expect(order).toEqual(['setup', 'off']);
+    helper.createDriver.mockRestore();
+  });
+
+  it('still runs commands when the driver setup fails', async () => {
+    const driver = fakeDriver();
+    driver.setup.mockRejectedValue(new Error('no such device'));
+    vi.spyOn(helper, 'createDriver').mockReturnValue(driver);
+
+    helper.socketNotificationReceived('CONFIG', { backend: 'cec-ctl' });
+    helper.queue.push('off');
+    await helper.handleQueue();
+
+    expect(driver.off).toHaveBeenCalledTimes(1);
+    expect(helper.log).toHaveBeenCalledWith(
+      expect.stringContaining('setup failed')
+    );
+    helper.createDriver.mockRestore();
   });
 
   it('CECControl enqueues payload and starts the queue', () => {

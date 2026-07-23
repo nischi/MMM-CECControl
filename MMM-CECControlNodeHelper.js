@@ -11,7 +11,7 @@
  */
 
 const { execFile, execShell } = require('./lib/exec');
-const { createDriver } = require('./lib/drivers');
+const { createDriver: buildDriver } = require('./lib/drivers');
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -20,6 +20,9 @@ const MMMCECControlNodeHelper = {
   queue: [],
   queueWorking: false,
   driver: null,
+  // Resolves once the driver's setup() has settled. handleQueue awaits it so no
+  // command is transmitted before the backend is ready.
+  ready: null,
 
   start() {
     console.log('Starting node helper: ' + this.name);
@@ -43,6 +46,11 @@ const MMMCECControlNodeHelper = {
     }
   },
 
+  // Seam so tests can inject a driver without shelling out to real hardware.
+  createDriver(config, runtime) {
+    return buildDriver(config, runtime);
+  },
+
   initDriver() {
     const runtime = {
       execFile,
@@ -50,11 +58,14 @@ const MMMCECControlNodeHelper = {
       sleep,
       log: (message) => this.log(message),
     };
+    this.ready = null;
     try {
-      this.driver = createDriver(this.config, runtime);
+      this.driver = this.createDriver(this.config, runtime);
       this.log(`using backend: ${this.driver.name}`);
       if (typeof this.driver.setup === 'function') {
-        Promise.resolve(this.driver.setup()).catch((err) =>
+        // Never rejects: a failed setup is logged, and commands are still
+        // attempted afterwards rather than being blocked forever.
+        this.ready = Promise.resolve(this.driver.setup()).catch((err) =>
           this.log('driver setup failed: ' + err.message)
         );
       }
@@ -69,6 +80,9 @@ const MMMCECControlNodeHelper = {
   async handleQueue() {
     this.queueWorking = true;
     try {
+      // cec-ctl claims its logical address in setup(); transmitting before that
+      // finishes fails with "Unregistered" on the real adapter.
+      await this.ready;
       while (this.queue.length > 0) {
         const next = this.queue.shift();
         if (next === this.status) {
