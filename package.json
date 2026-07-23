@@ -1,10 +1,18 @@
 {
   "name": "mmm-ceccontrol",
-  "version": "1.4.1",
-  "description": "Control TV",
+  "version": "2.0.0",
+  "description": "MagicMirror² module to turn an HDMI TV on/off via HDMI-CEC (cec-ctl) or custom/display-power commands.",
   "main": "MMM-CECControl.js",
+  "type": "commonjs",
   "scripts": {
-    "test": "npx jamsine"
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write ."
+  },
+  "engines": {
+    "node": ">=24"
   },
   "repository": {
     "type": "git",
@@ -12,11 +20,14 @@
   },
   "keywords": [
     "cec",
+    "cec-ctl",
     "control",
     "tv",
+    "hdmi",
     "mmm",
     "magic",
-    "mirror"
+    "mirror",
+    "magicmirror"
   ],
   "author": "Thierry Nischelwitzer",
   "license": "MIT",
@@ -24,16 +35,12 @@
     "url": "https://github.com/nischi/MMM-CECControl/issues"
   },
   "homepage": "https://github.com/nischi/MMM-CECControl#readme",
-  "dependencies": {
-    "python-shell": "^1.0.7"
-  },
   "devDependencies": {
-    "eslint": "^6.8.0",
-    "eslint-config-standard": "^14.1.1",
-    "eslint-plugin-import": "^2.20.1",
-    "eslint-plugin-node": "^11.0.0",
-    "eslint-plugin-promise": "^4.2.1",
-    "eslint-plugin-standard": "^4.0.1",
-    "jasmine": "^3.5.0"
+    "@eslint/js": "10.0.1",
+    "eslint": "10.5.0",
+    "eslint-config-prettier": "10.1.8",
+    "globals": "17.6.0",
+    "prettier": "3.8.4",
+    "vitest": "4.1.8"
   }
 }
